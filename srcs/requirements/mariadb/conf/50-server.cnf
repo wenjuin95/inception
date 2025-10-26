@@ -1,0 +1,26 @@
+
+[mysqld]
+# set default user to access
+user                    = mysql
+
+# define location of the PID file (help track the running mariadb process)
+pid-file                = /run/mysqld/mysqld.pid
+
+# directory where mariadb install
+basedir                 = /usr
+
+# directory where the actual database file are store
+datadir                 = /var/lib/mysql
+
+# directory where the temp file will create
+tmpdir                  = /tmp
+
+# directory that contain all kind message and the message language
+lc_messages_dir         = /usr/share/mysql
+lc_messages             = en_US
+
+# disable external file locking to improve performance
+skip-external-locking
+
+# set the databse listen to any ip address
+bind-address            = 0.0.0.0

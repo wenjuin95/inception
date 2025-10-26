@@ -1,0 +1,60 @@
+
+services:
+
+  # a web server to handle incoming requests and forward them to wordpress php-fpm
+  nginx:
+    build: requirements/nginx # build the container from that folder -> dockerfile
+    container_name: nginx # name of the container
+    restart: always # restart the container if it stops or crashes
+    ports: # expose the ports to the host machine so wordpress is accessible
+      - "443:443"
+    volumes: # store the wordpress files in the location specified
+      - wordpress:/var/www/html
+    networks: # attach the container in docker network called inception
+      - inception
+
+  # a web application write in php
+  wordpress:
+    build: requirements/wordpress
+    container_name: wordpress
+    restart: always
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - inception
+    depends_on: # ensure mariadb starts first
+      - mariadb
+    env_file: # load environment variables from .env file
+      - .env
+
+  # a database server to store wordpress data
+  mariadb:
+    build: requirements/mariadb
+    container_name: mariadb
+    restart: always
+    volumes:
+      - mariadb:/var/lib/mysql
+    env_file:
+      - .env
+    networks:
+      - inception
+
+# create persistent storage for mariadb and wordpress data so that data is not lost when containers are removed or recreated
+volumes:
+  mariadb: # volume name
+    driver: local # specify the data store in local host storage
+    driver_opts: # options for how volume create and manage
+      type: none # no specify filesystem type is set
+      o: bind # the volume direct link to the host machine
+      device: ${DATA_PATH}/mariadb # specify the volume location to store
+  wordpress:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/wordpress
+
+# create a custom bridge network called inception for the containers to communicate securely
+networks:
+  inception: # connect all service to the same network
+    driver: bridge # allow containers communicate each other but isolate them from container not in the same network
