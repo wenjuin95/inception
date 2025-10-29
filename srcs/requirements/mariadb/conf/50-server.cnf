@@ -1,7 +1,7 @@
 
 [mysqld]
-# set default user to access
-user                    = mysql
+# specify a user to run the database
+user                    = root
 
 # define location of the PID file (help track the running mariadb process)
 pid-file                = /run/mysqld/mysqld.pid

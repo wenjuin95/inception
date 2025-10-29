@@ -11,6 +11,7 @@ COPY ./conf/default.conf /etc/nginx/sites-available/default
 COPY tool/get_cert.sh /get_cert.sh
 RUN chmod +x /get_cert.sh
 
+# expose 443 for other containers to be able to connect to nginx
 EXPOSE 443
 
 ENTRYPOINT [ "/get_cert.sh" ]

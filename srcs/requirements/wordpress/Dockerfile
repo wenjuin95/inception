@@ -1,21 +1,17 @@
 FROM debian:latest
 
 # handle php script efficiently in web server
-# php-fpm        => FastCGI Process Manager for PHP scripts
-# php-mysql      => extension for PHP to interact with mariaDB databases
-# php-curl       => extension for PHP to make HTTP requests
-# php-xml        => extension for PHP to parse XML documents
-# php-mbstring   => extension for PHP to handle multibyte strings
-# php-zip        => extension for PHP to handle ZIP files
-# php-gd         => extension for PHP to handle image processing
-# php-cli        => command line interface for PHP
-# mariadb-client => to interact with mariadb databases from command line
+# php-fpm        => runing php with fastcgi process manager
+# php-mysql      => allow php to communicate with the mariadb
+# mariadb-client => used to connect to the mariadb container for database management
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    php8.4-fpm php8.4-mysql php8.4-curl php8.4-xml php8.4-mbstring \
-    php8.4-zip php8.4-gd php8.4-cli mariadb-client curl wget unzip && \
+    php8.4-fpm php8.4-mysql mariadb-client curl wget unzip && \
     rm -rf /var/lib/apt/lists/*
 
-# install wp-cli ( this is a command line tool to manage wordpress installations )
+# copy custom php-fpm configuration file to the container
+COPY conf/www.conf /etc/php/8.4/fpm/pool.d/.
+
+# wp-cli is to manage wordpress installation from command line
 RUN curl -o /usr/local/bin/wp -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
     chmod +x /usr/local/bin/wp
 

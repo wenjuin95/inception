@@ -8,15 +8,19 @@ RUN apt-get update && apt-get upgrade -y && \
 #copy the config file to container
 COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/
 
+#/run/mysqld: store the socket file and the process id file
+#/var/lib/mysql: store the database files
+#/var/log/mysql: store the log files
+#set the ownership to mysql mean the only that user can access it
+RUN mkdir -p /run/mysqld /var/lib/mysql /var/log/mysql && \
+    chown -R mysql:mysql /run/mysqld /var/lib/mysql /var/log/mysql
+
 #copy the database config to the current directory
 COPY tools/create_database.sh .
 
 # make it executable
 RUN chmod +x create_database.sh
 
-#/run/mysqld: store the socket file for communication between the server and the client
-#set the ownership to mysql mean the only that user can access it
-RUN mkdir -p /run/mysqld && chown -R mysql:mysql /run/mysqld
 
 #this script will run first
 ENTRYPOINT [ "./create_database.sh" ]

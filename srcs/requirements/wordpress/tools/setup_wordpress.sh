@@ -1,30 +1,38 @@
 #!/bin/bash
 
+# enable exit on error, if command fails script stops
 set -e
 
 green='\033[0;32m'
 reset='\033[0m'
 
-# Ensure the PHP session directory exists
+# a directory to store process id and socket
 mkdir -p /run/php
 
-# Wait for MariaDB to be ready
-until mysqladmin ping -h mariadb -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" --silent; do
-	sleep 1
-done
-echo -e "${green}MariaDB server started${reset}"
-
-# Set ownership of WordPress files (for ownership by www-data)
-chown -R www-data:www-data /var/www/html/
+# change ownership of /run/php to www-data
+# www-data is the user that php nad nginx run as inside container
+# var/www/html is the default root directory where wordpress files will be stored
+chown -R www-data:www-data /run/php && \
+mkdir -p /var/www/html/
 cd /var/www/html/
+
+# Wait for MariaDB to be ready
+echo -e "${green}waiting for mariadb to be start...${reset}"
+while ! mysqladmin ping -h"$MYSQL_DATABASE" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent; do
+    echo -e "${green}MariaDB not started yet${reset}"
+	sleep 5
+done
+echo -e "${green}MariaDB started${reset}"
+
 
 # Check if WordPress is already installed and setup
 if [ ! -f wp-config.php ]; then
     # Download WordPress
-    echo -e "${green}downloading wordpress...${reset}"
+    # --allow-root is used to run wp-cli commands as root user
+    echo -e "${green}WordPress not installed. Installing...${reset}"
     wp core download --allow-root
 
-    # Create wp-config.php (for database connection)
+    # Create wp-config.php file to link WordPress to the database
     echo -e "${green}creating wp-config.php...${reset}"
     wp config create \
         --dbname="${MYSQL_DATABASE}" \
@@ -34,6 +42,7 @@ if [ ! -f wp-config.php ]; then
         --allow-root
 
     # Install WordPress
+    # configure wordpress by creating database tables and setting up admin account
     echo -e "${green}installing wordpress and set up admin...${reset}"
     wp core install \
         --url="${WORDPRESS_URL}" \
@@ -52,10 +61,9 @@ if [ ! -f wp-config.php ]; then
     --allow-root
 fi
 
-# Modify PHP-FPM to listen on all interfaces at port 9000
-sed -i 's|listen = /run/php/php8.4-fpm.sock|listen = 0.0.0.0:9000|' /etc/php/8.4/fpm/pool.d/www.conf
-
 # Start PHP-FPM
+# -F ensure php-fpm stay running and handle php request continuously and keep container alive
+echo -e "${green}starting php-fpm8.4...${reset}"
 php-fpm8.4 -F
 
 # https://welow.42.fr/wp-admin => admin panel

@@ -6,7 +6,7 @@ services:
     build: requirements/nginx # build the container from that folder -> dockerfile
     container_name: nginx # name of the container
     restart: always # restart the container if it stops or crashes
-    ports: # expose the ports to the host machine so wordpress is accessible
+    ports: # expose the ports to the host machine
       - "443:443"
     volumes: # store the wordpress files in the location specified
       - wordpress:/var/www/html
@@ -18,6 +18,8 @@ services:
     build: requirements/wordpress
     container_name: wordpress
     restart: always
+    expose:
+      - "9000" # expose port 9000 to other containers in the same network
     volumes:
       - wordpress:/var/www/html
     networks:
@@ -32,6 +34,8 @@ services:
     build: requirements/mariadb
     container_name: mariadb
     restart: always
+    expose:
+      - "3306"
     volumes:
       - mariadb:/var/lib/mysql
     env_file:

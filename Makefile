@@ -25,8 +25,12 @@ down:
 	@echo "${green}Remove docker containers${reset}"
 
 fclean:
-	@docker compose -f $(COMPOSE_FILE) down --rmi all -v
-	@echo "${green}Remove docker containers, images and volumes${reset}"
+	@docker stop $$(docker ps -a -q) || true
+	@docker rm $$(docker ps -a -q) || true
+	@docker rmi $$(docker images -q) || true
+	@docker volume rm $$(docker volume ls -q) || true
+	@docker network rm $$(docker network ls -q) 2>/dev/null || true
+	@echo "${green}Remove docker containers, images, network and volumes${reset}"
 	@sudo rm -rf ~/data/mariadb ~/data/wordpress
 	@echo "${green}Remove volume directories${reset}"
 
