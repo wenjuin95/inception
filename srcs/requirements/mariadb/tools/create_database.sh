@@ -24,24 +24,38 @@ while ! mysqladmin ping --silent; do
 done
 echo -e "${yellow}mariadb started${reset}"
 
-# connect to database and create database and user
-echo -e "${yellow}create database and user${reset}"
-mysql -u root << EOF # connect with root and no password ( for first time connect)
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';
-CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\` CHARACTER SET utf8 COLLATE utf8_general_ci;
-CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
-FLUSH PRIVILEGES;
-EOF
-echo -e "${yellow}Successfully created${reset}"
+# Secure root and create DB/user only if not already done
+if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
+    echo -e "${yellow}create database and user${reset}"
+
+    # First run: root has no password yet
+    mysql -u root <<-EOSQL
+        CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
+        CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
+        GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
+        ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+        FLUSH PRIVILEGES;
+EOSQL
+    echo -e "${yellow}database and user created${reset}"
+else
+    echo -e "${yellow}database already exists, skipping creation${reset}"
+fi
 
 #stop the mysql server
 echo -e "${yellow}Stopping MariaDb${reset}"
-mysqladmin -u root -p"${MYSQL_PASSWORD}" shutdown
-wait "$pid"
+if ! mysqladmin -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown 2>/dev/null; then
+    # if shutdown command fails (password wrong or other), kill the background process
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+fi
 
 #start the mysql server with networking enabled ( any IP can connect )
 exec mysqld --user=mysql --bind-address=0.0.0.0
 
-#test for successful database creation
-#docker exec -it mariadb mysql -uwpuser -ppassword -e "SHOW DATABASES;"
+# To connect to the mariadb container and check databases
+
+# -it : interactive terminal
+#docker exec -it mariadb bash
+
+# To check databases inside the mariadb container
+# mysql -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SHOW DATABASES;"

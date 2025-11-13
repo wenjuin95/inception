@@ -3,18 +3,20 @@ services:
 
   # a web server to handle incoming requests and forward them to wordpress php-fpm
   nginx:
+    image: inception_nginx # image name
     build: requirements/nginx # build the container from that folder -> dockerfile
     container_name: nginx # name of the container
     restart: always # restart the container if it stops or crashes
     ports: # expose the ports to the host machine
       - "443:443"
-    volumes: # store the wordpress files in the location specified
+    volumes: # file will store to the location in the container and also store in the volume name "wordpress"
       - wordpress:/var/www/html
     networks: # attach the container in docker network called inception
-      - inception
+      - inception_net
 
   # a web application write in php
   wordpress:
+    image: inception_wordpress
     build: requirements/wordpress
     container_name: wordpress
     restart: always
@@ -23,7 +25,7 @@ services:
     volumes:
       - wordpress:/var/www/html
     networks:
-      - inception
+      - inception_net
     depends_on: # ensure mariadb starts first
       - mariadb
     env_file: # load environment variables from .env file
@@ -31,6 +33,7 @@ services:
 
   # a database server to store wordpress data
   mariadb:
+    image: inception_mariadb
     build: requirements/mariadb
     container_name: mariadb
     restart: always
@@ -41,17 +44,19 @@ services:
     env_file:
       - .env
     networks:
-      - inception
+      - inception_net
 
 # create persistent storage for mariadb and wordpress data so that data is not lost when containers are removed or recreated
 volumes:
   mariadb: # volume name
+    name: mariadb
     driver: local # specify the data store in local host storage
-    driver_opts: # options for how volume create and manage
-      type: none # no specify filesystem type is set
-      o: bind # the volume direct link to the host machine
-      device: ${DATA_PATH}/mariadb # specify the volume location to store
+    driver_opts: # options for how the "driver: local" should behave
+      type: none # no mounting a specific device type ( just binding to a directory )
+      o: bind # prevent docker manage the volume itself, instead create a direct link to a directory on the host machine
+      device: ${DATA_PATH}/mariadb # if use "o: bind", must specify the host directory
   wordpress:
+    name: wordpress
     driver: local
     driver_opts:
       type: none
@@ -60,5 +65,6 @@ volumes:
 
 # create a custom bridge network called inception for the containers to communicate securely
 networks:
-  inception: # connect all service to the same network
+  inception_net: # name of the network for the containers to join
+    name: inception_net # specify the network name
     driver: bridge # allow containers communicate each other but isolate them from container not in the same network

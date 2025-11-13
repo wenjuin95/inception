@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# enable exit on error, if command fails script stops
+# terminate the script if any command fails
 set -e
 
 green='\033[0;32m'
@@ -10,7 +10,7 @@ reset='\033[0m'
 mkdir -p /run/php
 
 # change ownership of /run/php to www-data
-# www-data is the user that php nad nginx run as inside container
+# www-data is the user that php and nginx run as inside container
 # var/www/html is the default root directory where wordpress files will be stored
 chown -R www-data:www-data /run/php && \
 mkdir -p /var/www/html/
@@ -32,7 +32,7 @@ if [ ! -f wp-config.php ]; then
     echo -e "${green}WordPress not installed. Installing...${reset}"
     wp core download --allow-root
 
-    # Create wp-config.php file to link WordPress to the database
+    # Create wp-config.php file for database connection
     echo -e "${green}creating wp-config.php...${reset}"
     wp config create \
         --dbname="${MYSQL_DATABASE}" \
