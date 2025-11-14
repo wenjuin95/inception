@@ -18,7 +18,7 @@ cd /var/www/html/
 
 # Wait for MariaDB to be ready
 echo -e "${green}waiting for mariadb to be start...${reset}"
-while ! mysqladmin ping -h"$MYSQL_DATABASE" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent; do
+while ! mysqladmin ping -h"$MARIADB_DATABASE" -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" --silent; do
     echo -e "${green}MariaDB not started yet${reset}"
 	sleep 5
 done
@@ -33,19 +33,23 @@ if [ ! -f wp-config.php ]; then
     wp core download --allow-root
 
     # Create wp-config.php file for database connection
+    # dbname: name of the database
+    # dbuser: database user
+    # dbpass: database user password
+    # dbhost: hostname of the database server
     echo -e "${green}creating wp-config.php...${reset}"
     wp config create \
-        --dbname="${MYSQL_DATABASE}" \
-        --dbuser="${MYSQL_USER}" \
-        --dbpass="${MYSQL_PASSWORD}" \
-        --dbhost="${WORDPRESS_DB_HOST}" \
+        --dbname="${MARIADB_DATABASE}" \
+        --dbuser="${MARIADB_USER}" \
+        --dbpass="${MARIADB_PASSWORD}" \
+        --dbhost="${MARIADB_DATABASE}" \
         --allow-root
 
     # Install WordPress
     # configure wordpress by creating database tables and setting up admin account
     echo -e "${green}installing wordpress and set up admin...${reset}"
     wp core install \
-        --url="${WORDPRESS_URL}" \
+        --url="${DOMAIN_WEBSITE}" \
         --title="${WORDPRESS_TITLE}" \
         --admin_user="${WORDPRESS_ADMIN}" \
         --admin_password="${WORDPRESS_ADMIN_PASSWORD}" \

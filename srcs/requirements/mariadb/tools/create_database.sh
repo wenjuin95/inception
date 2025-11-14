@@ -25,15 +25,14 @@ done
 echo -e "${yellow}mariadb started${reset}"
 
 # Secure root and create DB/user only if not already done
-if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
+if [ ! -d "/var/lib/mysql/${MARIADB_DATABASE}" ]; then
     echo -e "${yellow}create database and user${reset}"
 
     # First run: root has no password yet
     mysql -u root <<-EOSQL
-        CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
-        CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-        GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
-        ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+        CREATE DATABASE IF NOT EXISTS \`${MARIADB_DATABASE}\`;
+        CREATE USER IF NOT EXISTS '${MARIADB_USER}'@'%' IDENTIFIED BY '${MARIADB_PASSWORD}';
+        GRANT ALL PRIVILEGES ON \`${MARIADB_DATABASE}\`.* TO '${MARIADB_USER}'@'%';
         FLUSH PRIVILEGES;
 EOSQL
     echo -e "${yellow}database and user created${reset}"
@@ -43,11 +42,11 @@ fi
 
 #stop the mysql server
 echo -e "${yellow}Stopping MariaDb${reset}"
-if ! mysqladmin -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown 2>/dev/null; then
-    # if shutdown command fails (password wrong or other), kill the background process
-    kill "$pid" 2>/dev/null || true
-    wait "$pid" 2>/dev/null || true
-fi
+mysqladmin -u root shutdown 2>/dev/null || true
+
+# wait for the mysql server to fully stop
+wait "$pid"
+echo -e "${yellow}MariaDb stopped${reset}"
 
 #start the mysql server with networking enabled ( any IP can connect )
 exec mysqld --user=mysql --bind-address=0.0.0.0
@@ -58,4 +57,4 @@ exec mysqld --user=mysql --bind-address=0.0.0.0
 #docker exec -it mariadb bash
 
 # To check databases inside the mariadb container
-# mysql -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SHOW DATABASES;"
+# mysql -u"${MARIADB_USER}" -p"${MARIADB_PASSWORD}" -e "SHOW DATABASES;"

@@ -23,4 +23,4 @@ COPY tools/setup_wordpress.sh .
 RUN chmod +x setup_wordpress.sh
 
 # run the script to setup wordpress
-CMD ["./setup_wordpress.sh"]
+ENTRYPOINT ["./setup_wordpress.sh"]

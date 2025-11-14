@@ -21,6 +21,5 @@ COPY tools/create_database.sh .
 # make it executable
 RUN chmod +x create_database.sh
 
-
 #this script will run first
 ENTRYPOINT [ "./create_database.sh" ]

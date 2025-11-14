@@ -14,7 +14,7 @@ RUN chmod +x /get_cert.sh
 # expose 443 for other containers to be able to connect to nginx
 EXPOSE 443
 
-ENTRYPOINT [ "/get_cert.sh" ]
+RUN /get_cert.sh
 
 #this command is to ensure that nginx runs in the container
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

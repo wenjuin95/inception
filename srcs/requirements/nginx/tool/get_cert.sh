@@ -26,7 +26,7 @@ if [ ! -f "/etc/nginx/ssl/nginx.crt" ] || [ ! -f "/etc/nginx/ssl/nginx.key" ]; t
         -newkey rsa:2048 \
         -keyout "/etc/nginx/ssl/nginx.key" \
         -out "/etc/nginx/ssl/nginx.crt" \
-        -subj "/C=MY/ST=SELANGOR/L=SUBANGJAYA/O=IT/OU=IT/CN=welow.42.fr"
+        -subj "/C=MY/ST=SELANGOR/L=SUBANGJAYA/O=IT/OU=IT/CN=${DOMAIN_WEBSITE}"
 else
     echo -e "${cyan}SSL certificate already exists.${reset}"
 fi

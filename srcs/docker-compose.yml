@@ -13,6 +13,8 @@ services:
       - wordpress:/var/www/html
     networks: # attach the container in docker network called inception
       - inception_net
+    env_file:
+      - .env
 
   # a web application write in php
   wordpress:
