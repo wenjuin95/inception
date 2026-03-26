@@ -2,9 +2,10 @@
 
 ## About The Project
 
-This project is learn to sets up a multi-container Docker environment using `docker-compose`. It deploys each core service running in its own isolated container.
-
-The main goals are to demonstrate understanding of containerization, networking, and data persistence within a Docker ecosystem.
+This project demonstrates the deployment of a microservice-pattern architecture using Docker. Key features include:
+- Service Isolation: Each core service runs in a dedicated container based on a custom Debian image.
+- Secure Networking: Inter-container communication via a private bridge network with NGINX as the TLS-encrypted gateway.
+- Persistence: Implementation of Docker volumes to ensure data integrity across container lifecycles."
 
 ### Key Features
 
